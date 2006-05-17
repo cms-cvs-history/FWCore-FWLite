@@ -1,0 +1,9 @@
+<environment>
+<use name=boost>
+<use name=cppunit>
+</environment>
+<bin name=testFWCoreFWLite 
+  file=stdnamespaceadder_t.cppunit.cpp>
+  <use name=cppunit>
+  <use name=FWCore/FWLite>
+</bin>
