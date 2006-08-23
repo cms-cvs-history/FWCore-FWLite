@@ -8,3 +8,7 @@
   <use name=FWCore/FWLite>
   <use name=DataFormats/TestObjects>
 </bin>
+<bin file=TestRunnerFWCoreFWLite.cpp>
+  <flags TEST_RUNNER_ARGS=" /bin/bash FWCore/FWLite/test run_all_t.sh">
+  <use name=FWCore/Utilities>
+</bin>
