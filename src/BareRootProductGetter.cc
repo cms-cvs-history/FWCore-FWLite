@@ -8,7 +8,7 @@
 //
 // Original Author:  Chris Jones
 //         Created:  Tue May 23 11:03:31 EDT 2006
-// $Id: BareRootProductGetter.cc,v 1.11 2007/01/19 04:53:28 wmtan Exp $
+// $Id: BareRootProductGetter.cc,v 1.11.2.1 2007/06/05 13:44:18 chrjones Exp $
 //
 
 // system include files
@@ -135,6 +135,7 @@ BareRootProductGetter::getIt(edm::ProductID const& iID) const  {
   if(buffer->eventEntry_ != eventEntry_) {
      //NOTE: Need to reset address because user could have set the address themselves
      void* address = &(buffer->address_);
+     buffer->branch_->SetAddress( address );
      buffer->branch_->GetEntry( eventEntry_ );
      buffer->eventEntry_=eventEntry_;
   }
