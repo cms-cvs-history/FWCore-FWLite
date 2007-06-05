@@ -8,7 +8,7 @@
 //
 // Original Author:  Chris Jones
 //         Created:  Tue May 23 11:03:31 EDT 2006
-// $Id: BareRootProductGetter.cc,v 1.10 2006/12/23 03:06:50 wmtan Exp $
+// $Id: BareRootProductGetter.cc,v 1.11 2007/01/19 04:53:28 wmtan Exp $
 //
 
 // system include files
@@ -132,7 +132,12 @@ BareRootProductGetter::getIt(edm::ProductID const& iID) const  {
 	<<"\n Please contact the developers since this message should not happen.";
     return 0;
   }
-  buffer->branch_->GetEntry( eventEntry_ );
+  if(buffer->eventEntry_ != eventEntry_) {
+     //NOTE: Need to reset address because user could have set the address themselves
+     void* address = &(buffer->address_);
+     buffer->branch_->GetEntry( eventEntry_ );
+     buffer->eventEntry_=eventEntry_;
+  }
   if(0 == buffer->product_.get()) {
      throw cms::Exception("BranchGetEntryFailed")
 	<<"Calling GetEntry with index "<<eventEntry_ 
