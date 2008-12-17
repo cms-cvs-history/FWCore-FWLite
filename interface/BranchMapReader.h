@@ -16,7 +16,7 @@
 //
 // Original Author:  Dan Riley
 //         Created:  Tue May 20 10:31:32 EDT 2008
-// $Id: BranchMapReader.h,v 1.4 2008/09/23 20:40:04 dsr Exp $
+// $Id: BranchMapReader.h,v 1.5 2008/09/24 15:25:31 dsr Exp $
 //
 
 // system include files
@@ -73,7 +73,8 @@ namespace fwlite {
     bool updateEvent(Long_t eventEntry);
     const edm::BranchDescription productToBranch(const edm::ProductID& pid) const {
       strategy_->updateMap();
-      edm::BranchID bid = eventInfoMap_.productToBranch(pid);
+      //edm::BranchID bid = eventInfoMap_.productToBranch(pid); // Kludge to allow compilation
+      edm::BranchID bid; // Kludge to allow compilation
       bidToDesc::const_iterator bdi = branchDescriptionMap_.find(bid);
       if (branchDescriptionMap_.end() == bdi) {
         return edm::BranchDescription();
