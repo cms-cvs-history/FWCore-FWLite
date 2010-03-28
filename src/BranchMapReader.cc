@@ -8,7 +8,7 @@
 //
 // Original Author:  Dan Riley
 //         Created:  Tue May 20 10:31:32 EDT 2008
-// $Id: BranchMapReader.cc,v 1.8 2009/03/19 04:26:22 wmtan Exp $
+// $Id: BranchMapReader.cc,v 1.9 2009/08/18 18:42:00 wmtan Exp $
 //
 
 // system include files
@@ -32,6 +32,7 @@
 #include "FWCore/Utilities/interface/EDMException.h"
 #include "DataFormats/Provenance/interface/BranchIDList.h"
 #include "DataFormats/Provenance/interface/ProductIDToBranchID.h"
+#include "DataFormats/Provenance/interface/BranchIDListRegistry.h"
 
 namespace fwlite {
   namespace internal {
@@ -57,6 +58,7 @@ namespace fwlite {
       virtual bool updateEvent(Long_t eventEntry) { eventEntry_ = eventEntry; return true; }
       virtual bool updateMap() { return true; }
       virtual edm::BranchID productToBranchID(const edm::ProductID& pid);
+      virtual edm::ProductID branchIDToProductID(edm::BranchID const& bid);
       virtual const edm::BranchDescription productToBranch(const edm::ProductID& pid);
       virtual const std::vector<edm::BranchDescription>& getBranchDescriptions();
 
@@ -67,7 +69,7 @@ namespace fwlite {
       std::vector<edm::BranchDescription> bDesc_;
       bool mapperFilled_;
       edm::History history_;
-	    edm::History* pHistory_;
+      edm::History* pHistory_;
     };
 
     Strategy::Strategy(TFile* file, int fileVersion)
@@ -122,6 +124,18 @@ namespace fwlite {
     {
       throw edm::Exception(edm::errors::UnimplementedFeature) << "Unsupported EDM file version";
     }
+
+
+    edm::ProductID 
+    Strategy::branchIDToProductID(edm::BranchID const& bid)
+    {
+      if (!bid.isValid()) {
+	throw edm::Exception(edm::errors::NotFound,"InvalidID")
+	  << "branchIDToProductID: invalid BranchID supplied\n";
+      }
+      return edm::ProductID();
+    }
+
 
     const edm::BranchDescription
     Strategy::productToBranch(const edm::ProductID& pid)
@@ -294,6 +308,7 @@ namespace fwlite {
       virtual bool updateEvent(Long_t eventEntry);
       virtual bool updateMap();
       virtual edm::BranchID productToBranchID(const edm::ProductID& pid);
+      virtual edm::ProductID branchIDToProductID(edm::BranchID const& bid);
     private:
       std::auto_ptr<edm::BranchIDLists> branchIDLists_;
     };
@@ -382,7 +397,42 @@ namespace fwlite {
       updateMap();
       return edm::productIDToBranchID(pid, *branchIDLists_, history_.branchListIndexes());
     }
+ 
+    edm::ProductID
+    BranchMapReaderStrategyV11::branchIDToProductID(edm::BranchID const& bid)
+    {
+      if (!bid.isValid()) {
+        throw edm::Exception(edm::errors::NotFound,"InvalidID")
+          << "branchIDToProductID: invalid BranchID supplied\n";
+      }
+
+      updateMap();
+      std::map<edm::BranchListIndex, edm::ProcessIndex> branchListIndexToProcessIndex_;
+
+      for (std::vector<edm::BranchListIndex>::const_iterator
+             it = pHistory_->branchListIndexes().begin(),
+             itEnd = pHistory_->branchListIndexes().end();
+           it != itEnd; ++it) {
+	edm::ProcessIndex pix = it - pHistory_->branchListIndexes().begin();
+        branchListIndexToProcessIndex_.insert(std::make_pair(*it, pix));
+	std::cout << "branch list index: " << *it << " , process index: " << pix << std::endl;
+      }
+
+      for (edm::BranchIDLists::const_iterator it = branchIDLists_->begin(), end = branchIDLists_->end();;++it){
+	
+	edm::BranchIDList::const_iterator index = std::find(it->begin(),it->end(),bid.id());
+        if (index != it->end()){
+              edm::ProductIndex productIndex = index - it->begin() ;
+	      edm::ProductIndex processIndex = branchListIndexToProcessIndex_[it - branchIDLists_->begin()];
+	      // std::cout<< "old ID: " << bid << " new ID: " << productToBranchID(edm::ProductID(processIndex+1, productIndex+1)) << std::endl;
+	      return edm::ProductID(processIndex+1, productIndex+1);
+	    }
+      }
+      // cannot throw, because some products may legitimately not have product ID's (e.g. pile-up).                                                              
+      return edm::ProductID();
+    }
   }
+
 
 //
 // constants, enums and typedefs
@@ -482,4 +532,12 @@ BranchMapReader::newStrategy(TFile* file, int fileVersion)
   }
   return s;
 }
+
+edm::ProductID
+BranchMapReader::branchIDToProductID(edm::BranchID const& bid) const 
+{
+  std::cout << "BranchMapReader::branchIDToProductID" << std::endl; 
+  return strategy_->branchIDToProductID(bid);
+}
+
 }

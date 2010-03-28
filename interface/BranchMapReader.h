@@ -16,7 +16,7 @@
 //
 // Original Author:  Dan Riley
 //         Created:  Tue May 20 10:31:32 EDT 2008
-// $Id: BranchMapReader.h,v 1.7 2008/12/22 18:06:07 dsr Exp $
+// $Id: BranchMapReader.h,v 1.8 2008/12/23 20:37:27 dsr Exp $
 //
 
 // system include files
@@ -42,6 +42,7 @@ namespace fwlite {
       virtual bool updateEvent(Long_t eventEntry) = 0;
       virtual bool updateMap() = 0;
       virtual edm::BranchID productToBranchID(const edm::ProductID& pid) = 0;
+      virtual edm::ProductID branchIDToProductID(edm::BranchID const& bid) = 0;
       virtual const edm::BranchDescription productToBranch(const edm::ProductID& pid) = 0;
       virtual const std::vector<edm::BranchDescription>& getBranchDescriptions() = 0;
 
@@ -66,6 +67,7 @@ namespace fwlite {
     bool updateFile(TFile* file);
     bool updateEvent(Long_t eventEntry);
     const edm::BranchDescription productToBranch(const edm::ProductID& pid);
+    edm::ProductID branchIDToProductID(edm::BranchID const& bid) const;
     int getFileVersion(TFile* file) const;
 
     TFile* getFile() const { return strategy_->currentFile_; }
@@ -82,3 +84,5 @@ namespace fwlite {
 }
 
 #endif
+
+
